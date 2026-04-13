@@ -1,0 +1,31 @@
+# playwright-scenarios
+
+> A small Ktor + Kotlin HTML DSL "Bookshelf" demo site used as a target for Playwright scenario recording, review, and test generation skills.
+
+The app mixes static marketing pages, dynamic HTML-rendered views, a session-backed cart, hardcoded login, form validation with field-level errors, and a native HTML5 drag-and-drop "My Shelves" page. All state (carts, shelves, orders) lives in memory only and resets on JVM restart.
+
+## Docs
+
+- [README](README.md): Project overview, requirements, running instructions, demo accounts, and page listing
+- [CLAUDE.md](CLAUDE.md): Architecture notes and non-obvious Ktor/HTML DSL gotchas for future contributors
+
+## API
+
+- [Application.module](src/main/kotlin/Application.kt): Ktor application entry point wiring sessions, content negotiation, and all feature route modules
+- [configureStaticRouting](src/main/kotlin/routing/StaticRouting.kt): `/` and `/about` static pages
+- [configureCatalogRouting](src/main/kotlin/routing/CatalogRouting.kt): `/catalog` (search/filter/sort/paginate) and `/books/{id}` detail
+- [configureCartRouting](src/main/kotlin/routing/CartRouting.kt): `/cart` plus add/qty/remove POST endpoints
+- [configureCheckoutRouting](src/main/kotlin/routing/CheckoutRouting.kt): `/checkout` form + PRG confirmation flow
+- [configureAuthRouting](src/main/kotlin/routing/AuthRouting.kt): `/login` and `/logout` using hardcoded `Users`
+- [configureShelfRouting](src/main/kotlin/routing/ShelfRouting.kt): `/shelves` plus JSON `/shelves/move` and `/shelves/reorder` drag-and-drop endpoints
+- [configureOrderRouting](src/main/kotlin/routing/OrderRouting.kt): `/orders` history for the logged-in user
+- [respondSeeOther](src/main/kotlin/routing/Redirects.kt): Helper that emits 303 See Other for POST→GET redirects
+- [respondPage](src/main/kotlin/html/Layout.kt): Shared HTML page shell (Tailwind head, nav, footer) with optional status override
+- [Catalog](src/main/kotlin/data/Catalog.kt): Hardcoded list of 20 demo books with ids, genres, prices, and emoji covers
+- [Users](src/main/kotlin/data/Users.kt): Hardcoded demo accounts (`demo`, `alice`, `bob`) and `authenticate()`
+- [Stores](src/main/kotlin/data/Stores.kt): In-memory `ConcurrentHashMap` carts, shelves, and orders with `resetAll()`
+- [Book](src/main/kotlin/model/Book.kt): Book data class and `Genre` enum
+- [Cart](src/main/kotlin/model/Cart.kt): Thread-safe `Cart` with add/setQty/remove/clear
+- [Shelf](src/main/kotlin/model/Shelf.kt): `Shelf` enum and `Shelves` with move/reorder operations
+- [UserSession](src/main/kotlin/session/UserSession.kt): `@Serializable` session cookie payload for logged-in users
+- [runTestApp](src/test/kotlin/TestSupport.kt): Test harness that resets state, boots the module, and provides a cookie-aware client with manual redirect following

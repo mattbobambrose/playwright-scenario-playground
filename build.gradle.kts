@@ -1,10 +1,8 @@
-val kotlin_version: String by project
-val kotlinx_html_version: String by project
-val logback_version: String by project
-
 plugins {
-  kotlin("jvm") version "2.3.0"
-  id("io.ktor.plugin") version "3.4.2"
+  alias(libs.plugins.kotlin.jvm)
+  alias(libs.plugins.kotlin.serialization)
+  alias(libs.plugins.ktor)
+  alias(libs.plugins.versions)
 }
 
 group = "com.mattbobambrose"
@@ -19,13 +17,22 @@ kotlin {
 }
 
 dependencies {
-  implementation("io.ktor:ktor-server-call-logging")
-  implementation("io.ktor:ktor-server-core")
-  implementation("io.ktor:ktor-server-html-builder")
-  implementation("org.jetbrains.kotlinx:kotlinx-html:$kotlinx_html_version")
-  implementation("io.ktor:ktor-server-cio")
-  implementation("ch.qos.logback:logback-classic:$logback_version")
-  implementation("io.ktor:ktor-server-config-yaml")
-  testImplementation("io.ktor:ktor-server-test-host")
-  testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+  implementation(libs.ktor.server.call.logging)
+  implementation(libs.ktor.server.core)
+  implementation(libs.ktor.server.html.builder)
+  implementation(libs.kotlinx.html)
+  implementation(libs.ktor.server.cio)
+  implementation(libs.logback.classic)
+  implementation(libs.ktor.server.config.yaml)
+  implementation(libs.ktor.server.content.negotiation)
+  implementation(libs.ktor.server.sessions)
+  implementation(libs.ktor.server.status.pages)
+  implementation(libs.ktor.serialization.kotlinx.json)
+  testImplementation(libs.ktor.server.test.host)
+  testImplementation(libs.kotest.runner.junit5)
+  testImplementation(libs.kotest.assertions.core)
+}
+
+tasks.test {
+  useJUnitPlatform()
 }

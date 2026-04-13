@@ -1,0 +1,121 @@
+# playwright-scenarios
+
+> A small Ktor + Kotlin HTML DSL "Bookshelf" demo site used as a target for Playwright scenario recording, review, and test generation skills.
+
+The app mixes static marketing pages, dynamic HTML-rendered views, a session-backed cart, hardcoded login, form validation with field-level errors, and a native HTML5 drag-and-drop "My Shelves" page. All state (carts, shelves, orders) lives in memory only and resets on JVM restart.
+
+## Docs
+
+### README
+
+---
+
+A Ktor-based "Bookshelf" demo site used as a target for the `/record-scenario`, `/review-scenario`, and `scenario-to-tests` skills in this marketplace.
+
+**Requirements:** JDK 21+. Run with `./gradlew run` (server listens on `http://localhost:8080`). State lives only in memory and resets on restart. Test with `./gradlew test`.
+
+**Demo accounts:** `demo/demo`, `alice/wonderland`, `bob/password1`.
+
+**Pages:**
+
+| Path | Notes |
+|------|-------|
+| `/` | Static home (hero + featured books) |
+| `/about` | Static about page |
+| `/catalog` | Search, genre filter, sort, paginated (6/page) |
+| `/books/{id}` | Detail page — Add to Cart / Add to Shelf |
+| `/cart` | Line items, qty updates, remove |
+| `/checkout` | Multi-field form with server-side validation |
+| `/login` | Hardcoded credentials, `?next=` support |
+| `/shelves` | Three shelves with native HTML5 drag-and-drop between and within columns |
+| `/orders` | Past orders for the logged-in user |
+
+**Project structure:** `src/main/kotlin/com/mattbobambrose/` with `routing/` (per-feature route wiring), `html/` (Kotlin HTML DSL pages + shared Layout), `model/`, `data/` (hardcoded Catalog + Users, in-memory Stores), and `session/` (cookie-based `UserSession` / `GuestSession`). Gradle version catalog at `gradle/libs.versions.toml`.
+
+**Drag-and-drop:** Native HTML5 DnD with a tiny inline script that POSTs JSON to `/shelves/move` or `/shelves/reorder`. Playwright's `locator.dragTo()` works directly.
+
+---
+
+### CLAUDE.md
+
+---
+
+**Architecture**
+- Ktor + Kotlin HTML DSL; all feature areas split per file under `routing/` and `html/`
+- In-memory state only (`data/Stores.kt`); tests use `runTestApp { }` which calls `Stores.resetAll()` first
+- Session storage via Ktor `Sessions` plugin; `UserSession` (logged-in) + `GuestSession` (anonymous cart)
+- JDK 21 toolchain pinned in `build.gradle.kts`; dependencies managed via `gradle/libs.versions.toml`
+
+**Non-obvious gotchas**
+- Ktor `Sessions` data classes MUST be `@Serializable` (kotlinx.serialization) — failures surface as `Serializer for class 'X' is not found` at request time, not compile time
+- Use `respondSeeOther(url)` (303) for POST→GET redirects, not `respondRedirect` (302). 303 interacts cleanly with Ktor client test redirect following and the PRG pattern
+- In Kotlin HTML DSL, `input { id = "x" }` and `select { id = "x" }` don't compile — use `attributes["id"] = "x"` instead
+- `respondPage(title, status, content)` accepts a custom status — pass `HttpStatusCode.BadRequest` when re-rendering a form with validation errors, otherwise `respondHtml` defaults to 200 and overrides any `call.response.status(...)` set before it
+
+**Testing**
+- Kotest StringSpec with `init { }` per the global rule
+- Use `runTestApp { client -> ... }` from `src/test/kotlin/TestSupport.kt`
+- Test client has `HttpCookies` but no auto-redirect plugin — follow redirects explicitly via `client.followRedirectAsGet(response)` (POST 303 to a GET endpoint would otherwise re-POST and 405)
+- `./gradlew test` for the suite; `./gradlew build` runs tests too
+
+---
+
+## API
+
+### Application.module — `src/main/kotlin/Application.kt`
+
+`fun Application.module()` — installs ContentNegotiation (JSON), Sessions, Monitoring (call logging), and all seven feature route modules.
+
+---
+
+### Routing
+
+- `fun Application.configureStaticRouting()` — `GET /` and `GET /about`
+- `fun Application.configureCatalogRouting()` — `GET /catalog` (params: `q`, `genre`, `sort`, `page`) and `GET /books/{id}`
+- `fun Application.configureCartRouting()` — `GET /cart`, `POST /cart/add`, `POST /cart/{id}/qty`, `POST /cart/{id}/remove`
+- `fun Application.configureCheckoutRouting()` — `GET /checkout`, `POST /checkout` (validates, renders errors with 400 on failure), `GET /checkout/confirmation/{orderId}`
+- `fun Application.configureAuthRouting()` — `GET /login`, `POST /login` (with `?next=`), `POST /logout`
+- `fun Application.configureShelfRouting()` — `GET /shelves` (login-gated), `POST /shelves/add`, `POST /shelves/move` (JSON `{bookId, fromShelf, toShelf, beforeBookId?}`), `POST /shelves/reorder` (JSON `{shelf, bookId, beforeBookId?}`)
+- `fun Application.configureOrderRouting()` — `GET /orders` (login-gated)
+- `suspend fun ApplicationCall.respondSeeOther(location: String)` — 303 See Other redirect helper
+
+---
+
+### Pages (HTML DSL)
+
+- `suspend fun ApplicationCall.respondPage(title: String, status: HttpStatusCode = OK, content: BODY.() -> Unit)` — shared layout with Tailwind CDN head, nav (with dynamic cart count + login state), and footer
+- `suspend fun ApplicationCall.renderHome()` / `renderAbout()` / `renderCatalog(CatalogQuery)` / `renderBookDetail(Book, showShelfPicker, flashMessage)` / `renderCart(items)` / `renderCheckout(items, form, errors)` / `renderCheckoutConfirmation(orderId, items, totalCents)` / `renderLogin(next, username, error)` / `renderShelves(shelvesData)` / `renderOrderHistory(orders)`
+
+---
+
+### Data
+
+- `object Catalog` — `books: List<Book>` (20 hardcoded), `findById(Int)`, `findByIds(List<Int>)`
+- `object Users` — `users: Map<String, User>`, `authenticate(username, password): User?`
+- `object Stores` — `cartFor(key): Cart`, `shelvesFor(username): Shelves`, `ordersFor(username): List<Order>`, `addOrder(Order)`, `findOrder(id)`, `nextOrderId(): String`, `resetAll()`
+
+---
+
+### Model
+
+- `data class Book(id, title, author, genre, priceCents, rating, coverEmoji, blurb)` with `enum class Genre`
+- `class Cart` — thread-safe; `snapshot()`, `add(bookId, qty)`, `setQty(bookId, qty)`, `remove(bookId)`, `clear()`, `itemCount`
+- `data class Order(id, username, items, totalCents, shippingName, shippingAddress, placedAt)`
+- `enum class Shelf { WANT, READING, FINISHED }`; `class Shelves` — `booksOn(shelf)`, `addIfAbsent(bookId, shelf)`, `move(bookId, from, to, beforeBookId?)`, `reorder(shelf, bookId, beforeBookId?)`
+- `data class User(username, displayName, password)`
+
+---
+
+### Session
+
+- `@Serializable data class UserSession(username: String)`
+- `@Serializable data class GuestSession(id: String)`
+- `fun Application.configureSessions()` — installs both cookies (path `/`, httpOnly)
+- `fun ApplicationCall.cartKey(): String` — returns `user:<username>` if logged in, otherwise ensures a `GuestSession` and returns `guest:<uuid>`
+
+---
+
+### Tests
+
+- `src/test/kotlin/TestSupport.kt` — `runTestApp { client -> ... }`, `testClient()`, `followRedirectAsGet(response)`, `postFormFollow(url, ...)`, `loginAs(username, password)`
+- Suites: `ApplicationTest`, `CatalogTest`, `AuthTest`, `CartTest`, `CheckoutTest`, `ShelfTest` — all Kotest `StringSpec` with `init { }`
