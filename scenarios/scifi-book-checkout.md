@@ -1,6 +1,6 @@
 # Sci-Fi Book Checkout
 
-**URL:** http://0.0.0.0:8080/
+**URL:** /
 
 A visitor filters the catalog to sci-fi, sorts by ascending price, adds a book to their cart, and proceeds to checkout.
 

@@ -1,21 +1,30 @@
 # playwright-scenario-playground
 
-A Ktor-based "Bookshelf" demo site used as a target for the `/record-scenario`, `/review-scenario`, and `scenario-to-tests` skills in this marketplace.
+A "Bookshelf" demo site implemented in **both Kotlin/Ktor and TypeScript/Express**, used as a target for the `/record-scenario`, `/review-scenario`, and `scenario-to-tests` skills in this marketplace.
 
-The site mixes static marketing pages, dynamic HTML-DSL views, a session-backed cart, hardcoded login, form validation with field-level errors, and a drag-and-drop "My Shelves" page — enough surface area to exercise a wide range of Playwright scenarios against a single small app.
+Both implementations serve the same pages with the same `data-testid` attributes, routes, validation rules, and demo data — so the same scenario markdown files validate both. This demonstrates that Playwright scenarios are implementation-agnostic.
 
 ## Requirements
 
-- JDK 21+ (the Kotlin JVM toolchain is pinned to 21 in `build.gradle.kts`)
-- macOS, Linux, or Windows with a Bourne-compatible shell for the Gradle wrapper
+- **Kotlin:** JDK 21+ (the Kotlin JVM toolchain is pinned to 21 in `build.gradle.kts`)
+- **TypeScript:** Node.js 20+
+- macOS, Linux, or Windows with a Bourne-compatible shell
 
 ## Running
+
+### Kotlin (port 8080)
 
 ```bash
 ./gradlew run
 ```
 
-Server listens on `http://localhost:8080` (configurable via `src/main/resources/application.yaml`). State (carts, shelves, orders) lives only in memory and resets on restart.
+### TypeScript (port 3000)
+
+```bash
+cd typescript && npm install && npm start
+```
+
+Both servers can run simultaneously. State (carts, shelves, orders) lives only in memory and resets on restart.
 
 A `Makefile` is also provided with shortcuts:
 
@@ -57,7 +66,7 @@ With the `playwright-scenarios` plugin installed and the server running, try the
 
 **Batch creation, fully autonomous.** No browser driving — Claude writes the scenarios by hand, verifies them against the live site, and generates the tests:
 
-> Crawl the site and pick the top 3 scenarios we're not covering yet. For each one, hand-write the scenario markdown directly into `src/test/scenarios/` using the `authoring-scenarios` skill — do NOT use `/record-scenario`. Then run `/review-scenario` across all three to verify them against the live site, then `/scenario-to-tests` to generate the Kotest files and run them. Don't ask me any clarifying questions.
+> Crawl the site and pick the top 3 scenarios we're not covering yet. For each one, hand-write the scenario markdown directly into `scenarios/` using the `authoring-scenarios` skill — do NOT use `/record-scenario`. Then run `/review-scenario` across all three to verify them against the live site, then `/scenario-to-tests` to generate the Kotest files and run them. Don't ask me any clarifying questions.
 
 **Targeted single scenario.** Name the flow up front, then just drive the browser:
 
@@ -78,6 +87,7 @@ With the `playwright-scenarios` plugin installed and the server running, try the
 ## Project structure
 
 ```
+scenarios/                         shared scenario markdown (both implementations)
 src/main/kotlin/com/mattbobambrose/
   Application.kt       module wiring
   Monitoring.kt        call-logging install
@@ -89,20 +99,45 @@ src/main/kotlin/com/mattbobambrose/
 src/main/resources/
   application.yaml     Ktor deployment config (port, modules)
   logback.xml          logging config
-src/test/kotlin/       Kotest StringSpec tests (ApplicationTest, CatalogTest, AuthTest, CartTest, CheckoutTest, ShelfTest)
-gradle/libs.versions.toml   version catalog for all dependencies and plugins
+src/test/kotlin/       Kotest StringSpec tests
+typescript/
+  src/
+    app.ts             Express app factory
+    server.ts          entry point (port 3000)
+    routes/            one file per feature area (mirrors Kotlin routing/)
+    views/             tagged template literals (mirrors Kotlin html/)
+    model/types.ts     Book, Cart, Order, Shelf, User types
+    data/              same 20 books, 3 users, in-memory stores
+    session/           express-session middleware
+gradle/libs.versions.toml   version catalog (Kotlin deps)
 ```
 
 ## Testing
 
 ```bash
-./gradlew test
+./gradlew test                     # Kotlin route tests
 ```
 
 Tests are Kotest `StringSpec` using `testApplication { ... }`. See `src/test/kotlin/TestSupport.kt` for the shared `testClient()` and `loginAs()` helpers.
 
+## Switching the plugin between implementations
+
+The scenario markdown files in `scenarios/` work for both. To switch which implementation `/scenario-to-tests` generates tests for, edit `.claude/playwright-scenarios.local.md`:
+
+```yaml
+# Kotlin
+test_dir: src/test/kotlin/com/mattbobambrose/examples/scenarios
+test_language: kotlin
+test_framework: kotest-stringspec
+
+# TypeScript (not yet supported by /scenario-to-tests)
+test_dir: typescript/tests/scenarios
+test_language: typescript
+test_framework: playwright-test
+```
+
 ## Drag-and-drop
 
-The shelves page uses standard HTML5 drag-and-drop (`draggable`, `dragstart`, `dragover`, `drop`). On drop, a tiny inline script POSTs JSON to `/shelves/move` or `/shelves/reorder`, and the server persists the new order.
+The shelves page uses standard HTML5 drag-and-drop (`draggable`, `dragstart`, `dragover`, `drop`). On drop, a native form submission POSTs to `/shelves/move` or `/shelves/reorder` (303 redirect back to `/shelves`), ensuring the persisted state is always what the user sees — no async fetch race on refresh.
 
 Playwright's `locator.dragTo()` works directly against this markup — no custom helpers needed.

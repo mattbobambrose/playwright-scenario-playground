@@ -37,6 +37,12 @@ clean-docs:
 	rm -rf website/website-validation/site
 	rm -rf website/website-validation/.cache
 
+kotlin-site:
+	./gradlew run
+
+ts-site:
+	cd typescript && npm start
+
 site: clean-docs
 	cd website/website-validation && uv run zensical serve
 

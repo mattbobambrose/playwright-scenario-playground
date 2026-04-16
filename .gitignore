@@ -38,5 +38,9 @@ out/
 ### Environment ###
 .env
 
+### Node.js ###
+node_modules/
+typescript/dist/
+
 ### Playwright CLI ###
 .playwright-cli/
