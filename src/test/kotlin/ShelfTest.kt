@@ -6,12 +6,8 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.get
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.contentType
 import io.ktor.http.parameters
 
 class ShelfTest : StringSpec() {
@@ -69,11 +65,15 @@ class ShelfTest : StringSpec() {
             append("shelf", "want")
           },
         )
-        val res = client.post("/shelves/move") {
-          contentType(ContentType.Application.Json)
-          setBody("""{"bookId":2,"fromShelf":"WANT","toShelf":"READING"}""")
-        }
-        res.status shouldBe HttpStatusCode.NoContent
+        val res = client.submitForm(
+          url = "/shelves/move",
+          formParameters = parameters {
+            append("bookId", "2")
+            append("fromShelf", "WANT")
+            append("toShelf", "READING")
+          },
+        )
+        res.status shouldBe HttpStatusCode.SeeOther
 
         val body = client.get("/shelves").bodyAsText()
         val readingSectionIndex = body.indexOf("data-testid=\"shelf-reading\"")
@@ -99,11 +99,15 @@ class ShelfTest : StringSpec() {
           url = "/shelves/add",
           formParameters = parameters { append("bookId", "2"); append("shelf", "reading") },
         )
-        val res = client.post("/shelves/reorder") {
-          contentType(ContentType.Application.Json)
-          setBody("""{"shelf":"READING","bookId":2,"beforeBookId":1}""")
-        }
-        res.status shouldBe HttpStatusCode.NoContent
+        val res = client.submitForm(
+          url = "/shelves/reorder",
+          formParameters = parameters {
+            append("shelf", "READING")
+            append("bookId", "2")
+            append("beforeBookId", "1")
+          },
+        )
+        res.status shouldBe HttpStatusCode.SeeOther
       }
     }
 
@@ -111,10 +115,14 @@ class ShelfTest : StringSpec() {
       runTestApp {
         val client = testClient()
         client.loginAs("demo", "demo")
-        val res = client.post("/shelves/move") {
-          contentType(ContentType.Application.Json)
-          setBody("""{"bookId":1,"fromShelf":"WAT","toShelf":"READING"}""")
-        }
+        val res = client.submitForm(
+          url = "/shelves/move",
+          formParameters = parameters {
+            append("bookId", "1")
+            append("fromShelf", "WAT")
+            append("toShelf", "READING")
+          },
+        )
         res.status shouldBe HttpStatusCode.BadRequest
       }
     }

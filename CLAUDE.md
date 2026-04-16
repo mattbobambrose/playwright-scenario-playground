@@ -1,4 +1,4 @@
-# playwright-scenarios
+# playwright-scenario-playground
 
 ## Architecture
 - Ktor + Kotlin HTML DSL; all feature areas split per file under `routing/` and `html/`

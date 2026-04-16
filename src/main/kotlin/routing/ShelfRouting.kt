@@ -6,13 +6,11 @@ import com.mattbobambrose.html.renderShelves
 import com.mattbobambrose.model.Shelf
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
-import io.ktor.server.request.receive
 import io.ktor.server.request.receiveParameters
 import io.ktor.server.response.respond
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
-import kotlinx.serialization.Serializable
 
 fun Application.configureShelfRouting() {
   routing {
@@ -35,41 +33,28 @@ fun Application.configureShelfRouting() {
     }
     post("/shelves/move") {
       val session = call.requireUser() ?: return@post
-      val body = call.receive<MoveRequest>()
-      val from = Shelf.fromParam(body.fromShelf)
-      val to = Shelf.fromParam(body.toShelf)
-      if (from == null || to == null) {
-        call.respond(HttpStatusCode.BadRequest, "Invalid shelf")
+      val params = call.receiveParameters()
+      val bookId = params["bookId"]?.toIntOrNull()
+      val from = Shelf.fromParam(params["fromShelf"])
+      val to = Shelf.fromParam(params["toShelf"])
+      if (bookId == null || from == null || to == null) {
+        call.respond(HttpStatusCode.BadRequest, "Invalid payload")
         return@post
       }
-      Stores.shelvesFor(session.username).move(body.bookId, from, to, body.beforeBookId)
-      call.respond(HttpStatusCode.NoContent)
+      Stores.shelvesFor(session.username).move(bookId, from, to, params["beforeBookId"]?.toIntOrNull())
+      call.respondSeeOther("/shelves")
     }
     post("/shelves/reorder") {
       val session = call.requireUser() ?: return@post
-      val body = call.receive<ReorderRequest>()
-      val shelf = Shelf.fromParam(body.shelf)
-      if (shelf == null) {
-        call.respond(HttpStatusCode.BadRequest, "Invalid shelf")
+      val params = call.receiveParameters()
+      val bookId = params["bookId"]?.toIntOrNull()
+      val shelf = Shelf.fromParam(params["shelf"])
+      if (bookId == null || shelf == null) {
+        call.respond(HttpStatusCode.BadRequest, "Invalid payload")
         return@post
       }
-      Stores.shelvesFor(session.username).reorder(shelf, body.bookId, body.beforeBookId)
-      call.respond(HttpStatusCode.NoContent)
+      Stores.shelvesFor(session.username).reorder(shelf, bookId, params["beforeBookId"]?.toIntOrNull())
+      call.respondSeeOther("/shelves")
     }
   }
 }
-
-@Serializable
-data class MoveRequest(
-  val bookId: Int,
-  val fromShelf: String,
-  val toShelf: String,
-  val beforeBookId: Int? = null,
-)
-
-@Serializable
-data class ReorderRequest(
-  val shelf: String,
-  val bookId: Int,
-  val beforeBookId: Int? = null,
-)

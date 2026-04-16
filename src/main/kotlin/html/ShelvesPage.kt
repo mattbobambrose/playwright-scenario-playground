@@ -76,14 +76,6 @@ private val DRAG_DROP_SCRIPT: String = """
   const shelves = document.querySelectorAll('ul.shelf');
   let dragged = null;
   let sourceShelf = null;
-  const errorBox = document.getElementById('shelf-error');
-
-  function showError(msg) {
-    if (!errorBox) return;
-    errorBox.textContent = msg;
-    errorBox.classList.remove('hidden');
-    setTimeout(() => errorBox.classList.add('hidden'), 4000);
-  }
 
   function findInsertBefore(shelfEl, clientY) {
     const cards = Array.from(shelfEl.querySelectorAll('li.book-card:not(.dragging)'));
@@ -99,29 +91,13 @@ private val DRAG_DROP_SCRIPT: String = """
     if (empty) empty.remove();
   }
 
-  function restoreEmptyPlaceholder(shelfEl) {
-    if (shelfEl.querySelectorAll('li.book-card').length === 0 && !shelfEl.querySelector('.shelf-empty')) {
-      const li = document.createElement('li');
-      li.className = 'shelf-empty text-center text-sm text-slate-400 italic py-8 border border-dashed border-slate-200 rounded';
-      li.setAttribute('data-testid', 'shelf-empty-' + shelfEl.dataset.shelf.toLowerCase());
-      li.textContent = 'Drop a book here';
-      shelfEl.appendChild(li);
-    }
-  }
-
-  function updateCount(shelfEl) {
-    const shelfName = shelfEl.dataset.shelf.toLowerCase();
-    const badge = document.querySelector('[data-testid="shelf-count-' + shelfName + '"]');
-    if (badge) badge.textContent = shelfEl.querySelectorAll('li.book-card').length;
-  }
-
   shelves.forEach(shelf => {
     shelf.addEventListener('dragover', (e) => {
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
     });
 
-    shelf.addEventListener('drop', async (e) => {
+    shelf.addEventListener('drop', (e) => {
       e.preventDefault();
       if (!dragged || !sourceShelf) return;
       const bookId = parseInt(dragged.dataset.bookId, 10);
@@ -130,28 +106,35 @@ private val DRAG_DROP_SCRIPT: String = """
       const insertBefore = findInsertBefore(shelf, e.clientY);
       const beforeBookId = insertBefore ? parseInt(insertBefore.dataset.bookId, 10) : null;
 
+      // Optimistic UI so the drop feels instant — the form submit below
+      // then navigates to the server-rendered authoritative state.
       removeEmptyPlaceholder(shelf);
       if (insertBefore) shelf.insertBefore(dragged, insertBefore);
       else shelf.appendChild(dragged);
 
-      const endpoint = fromShelf === toShelf ? '/shelves/reorder' : '/shelves/move';
-      const body = fromShelf === toShelf
-        ? { shelf: toShelf, bookId, beforeBookId }
-        : { bookId, fromShelf, toShelf, beforeBookId };
-
-      try {
-        const res = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        });
-        if (!res.ok) throw new Error('Server returned ' + res.status);
-        restoreEmptyPlaceholder(sourceShelf);
-        updateCount(sourceShelf);
-        updateCount(shelf);
-      } catch (err) {
-        showError('Could not save that move. Please refresh.');
+      const sameShelf = fromShelf === toShelf;
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = sameShelf ? '/shelves/reorder' : '/shelves/move';
+      form.style.display = 'none';
+      const addHidden = (name, value) => {
+        if (value === null || value === undefined) return;
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.value = String(value);
+        form.appendChild(input);
+      };
+      addHidden('bookId', bookId);
+      if (sameShelf) {
+        addHidden('shelf', toShelf);
+      } else {
+        addHidden('fromShelf', fromShelf);
+        addHidden('toShelf', toShelf);
       }
+      if (beforeBookId !== null) addHidden('beforeBookId', beforeBookId);
+      document.body.appendChild(form);
+      form.submit();
     });
   });
 

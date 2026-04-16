@@ -1,4 +1,4 @@
-# playwright-scenarios
+# playwright-scenario-playground
 
 A Ktor-based "Bookshelf" demo site used as a target for the `/record-scenario`, `/review-scenario`, and `scenario-to-tests` skills in this marketplace.
 
@@ -46,6 +46,34 @@ make tests   # ./gradlew --rerun-tasks check
 | `/login` | Hardcoded credentials, `?next=` support |
 | `/shelves` | Three shelves with native HTML5 drag-and-drop between and within columns |
 | `/orders` | Past orders for the logged-in user |
+
+## Suggested prompts
+
+With the `playwright-scenarios` plugin installed and the server running, try these prompts in Claude Code. All of them target the live site at `http://localhost:8080`.
+
+**End-to-end, no follow-up questions.** One prompt, hands on the browser once, everything else runs on autopilot:
+
+> Crawl the site and pick the most valuable scenario we're not covering yet. Kick off `/record-scenario` — I'll drive the browser when it opens. When I close the window, run the full `/review-scenario` → `/scenario-to-tests` pipeline and the generated test at the end. Don't ask me any clarifying questions; make the calls yourself.
+
+**Batch creation, fully autonomous.** No browser driving — Claude writes the scenarios by hand, verifies them against the live site, and generates the tests:
+
+> Crawl the site and pick the top 3 scenarios we're not covering yet. For each one, hand-write the scenario markdown directly into `src/test/scenarios/` using the `authoring-scenarios` skill — do NOT use `/record-scenario`. Then run `/review-scenario` across all three to verify them against the live site, then `/scenario-to-tests` to generate the Kotest files and run them. Don't ask me any clarifying questions.
+
+**Targeted single scenario.** Name the flow up front, then just drive the browser:
+
+> `/record-scenario checkout-invalid-email` starting at `/catalog`.
+
+**Audit existing scenarios against reality.** No recording, just re-verify the markdown against the live site:
+
+> `/review-scenario`
+
+**Generate tests from reviewed scenarios.** Reads `src/test/scenarios/*.md` and writes Kotest files under the configured test directory:
+
+> `/scenario-to-tests`
+
+**Just brainstorm.** Get a prioritized list without kicking off any automation:
+
+> Crawl the site and give me a prioritized list of scenarios worth recording, grouped by whether they fill a coverage gap or demonstrate a specific scenario-format feature.
 
 ## Project structure
 

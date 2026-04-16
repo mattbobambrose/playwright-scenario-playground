@@ -4,6 +4,7 @@ ktor = "3.4.2"
 kotlinx-html = "0.12.0"
 logback = "1.5.32"
 kotest = "6.1.11"
+playwright = "1.58.0"
 versions = "0.53.0"
 
 [libraries]
@@ -21,6 +22,7 @@ kotlinx-html = { module = "org.jetbrains.kotlinx:kotlinx-html", version.ref = "k
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
+playwright = { module = "com.microsoft.playwright:playwright", version.ref = "playwright" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

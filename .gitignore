@@ -37,3 +37,6 @@ out/
 
 ### Environment ###
 .env
+
+### Playwright CLI ###
+.playwright-cli/

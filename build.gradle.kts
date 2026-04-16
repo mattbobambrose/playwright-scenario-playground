@@ -31,8 +31,32 @@ dependencies {
   testImplementation(libs.ktor.server.test.host)
   testImplementation(libs.kotest.runner.junit5)
   testImplementation(libs.kotest.assertions.core)
+  testImplementation(libs.playwright)
 }
 
 tasks.test {
   useJUnitPlatform()
+}
+
+tasks.register<JavaExec>("installPlaywrightBrowsers") {
+  description = "Download Playwright browser binaries (one-time setup)."
+  group = "verification"
+  classpath = sourceSets["test"].runtimeClasspath
+  mainClass.set("com.microsoft.playwright.CLI")
+  args = listOf("install")
+}
+
+tasks.register<JavaExec>("recordScenario") {
+  description = "Launch Playwright codegen to record a browser flow as a Java file."
+  group = "verification"
+
+  classpath = sourceSets["test"].runtimeClasspath
+  mainClass.set("com.microsoft.playwright.CLI")
+
+  doFirst {
+    val url = project.findProperty("url") as String? ?: error("Provide -Purl=<start-url>")
+    val out = project.findProperty("out") as String? ?: error("Provide -Pout=<output-path>")
+    args = listOf("codegen", "--target", "java", "-o", out, url)
+    file(out).parentFile?.mkdirs()
+  }
 }
