@@ -1,4 +1,4 @@
-rootProject.name = "playwright-scenarios"
+rootProject.name = "playwright-scenario-playground"
 
 dependencyResolutionManagement {
   repositories {
