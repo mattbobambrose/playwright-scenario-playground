@@ -29,10 +29,22 @@ Both servers can run simultaneously. State (carts, shelves, orders) lives only i
 A `Makefile` is also provided with shortcuts:
 
 ```bash
-make build   # ./gradlew clean build
-make run     # ./gradlew run
-make tests   # ./gradlew --rerun-tasks check
+make build          # ./gradlew build -x test
+make run            # ./gradlew run
+make tests          # ./gradlew test
+make versioncheck   # ./gradlew dependencyUpdates
+make docker-local   # build the container image into the local Docker daemon
+make docker-run     # run the local image on port 8080
+make docker-push    # build multi-arch and push to the registry
 ```
+
+### Docker
+
+```bash
+make docker-local && make docker-run
+```
+
+Then open <http://localhost:8080>. The image is based on `eclipse-temurin:21-jre-alpine`, runs as a non-root user, and uses `-XX:MaxRAMPercentage=75.0` so the JVM scales with whatever memory the container is given.
 
 ## Demo accounts
 
@@ -99,6 +111,7 @@ src/main/kotlin/com/mattbobambrose/
 src/main/resources/
   application.yaml     Ktor deployment config (port, modules)
   logback.xml          logging config
+  banner/banner.txt    ASCII banner logged on startup
 src/test/kotlin/       Kotest StringSpec tests
 typescript/
   src/
@@ -110,6 +123,10 @@ typescript/
     data/              same 20 books, 3 users, in-memory stores
     session/           express-session middleware
 gradle/libs.versions.toml   version catalog (Kotlin deps)
+gradle.properties           group, version, Gradle perf flags
+Dockerfile                  multi-arch container image (linux/amd64, linux/arm64)
+.dockerignore               build-context exclusions
+Makefile                    convenience targets (build/run/test/docker-*)
 ```
 
 ## Testing

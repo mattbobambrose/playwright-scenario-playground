@@ -1,12 +1,10 @@
 plugins {
+  application
   alias(libs.plugins.kotlin.jvm)
   alias(libs.plugins.kotlin.serialization)
   alias(libs.plugins.ktor)
   alias(libs.plugins.versions)
 }
-
-group = "com.mattbobambrose"
-version = "0.0.1"
 
 application {
   mainClass = "io.ktor.server.cio.EngineMain"
@@ -17,10 +15,10 @@ kotlin {
 }
 
 dependencies {
+  implementation(libs.common.utils.core)
   implementation(libs.ktor.server.call.logging)
   implementation(libs.ktor.server.core)
   implementation(libs.ktor.server.html.builder)
-  implementation(libs.kotlinx.html)
   implementation(libs.ktor.server.cio)
   implementation(libs.logback.classic)
   implementation(libs.ktor.server.config.yaml)
