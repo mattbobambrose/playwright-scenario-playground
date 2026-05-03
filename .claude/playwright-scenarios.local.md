@@ -3,6 +3,8 @@ scenario_dir: scenarios
 test_dir: src/test/kotlin/com/mattbobambrose/examples/scenarios
 test_language: kotlin
 test_framework: kotest-stringspec
+source_root: src/test/kotlin
+base_test_class: com.mattbobambrose.examples.BasePageTest
 ---
 
 # Playwright Scenarios — Project Config

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { books } from '../data/catalog.js';
-import { cartCountFor } from '../data/stores.js';
+import { cartCountFor, resetAll } from '../data/stores.js';
 import { cartKeyOrNull } from '../session/middleware.js';
 import { renderHome } from '../views/home.js';
 import { renderAbout } from '../views/about.js';
@@ -26,6 +26,16 @@ router.get('/about', (req, res) => {
     cartCount: cartCountFor(cartKeyOrNull(req)),
   };
   res.send(renderAbout(opts));
+});
+
+// GET|POST /reset — clear all in-memory state
+router.get('/reset', (req, res) => {
+  resetAll();
+  res.redirect(303, '/');
+});
+router.post('/reset', (req, res) => {
+  resetAll();
+  res.redirect(303, '/');
 });
 
 export default router;

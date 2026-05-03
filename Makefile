@@ -1,28 +1,31 @@
-VERSION=$(shell grep '^version =' build.gradle.kts | head -1 | sed 's/.*"\(.*\)"/\1/' | sed 's/-SNAPSHOT//')
+VERSION=$(shell grep '^version=' gradle.properties | head -1 | cut -d= -f2 | sed 's/-SNAPSHOT//')
+PLATFORMS=linux/amd64,linux/arm64
+IMAGE_NAME=mattbobambrose/playwright-scenario-playground
+
+.PHONY: default clean build tests versioncheck docker-local docker-push docker-run depends run ts-site upgrade-wrapper
 
 default: versioncheck
 
 clean:
 	./gradlew clean
 
-build: clean
-	./gradlew build
+build:
+	./gradlew build -x test
 
 tests:
-	./gradlew --rerun-tasks check
+	./gradlew test
 
 versioncheck:
 	./gradlew dependencyUpdates
 
 docker-local: build
-	docker buildx build --platform linux/amd64,linux/arm64 -t mattbobambrose/eocare-pipeline .
+	docker buildx build --load -t $(IMAGE_NAME):latest -t $(IMAGE_NAME):$(VERSION) .
 
 docker-push: build
-	docker buildx build --platform linux/amd64,linux/arm64 -t mattbobambrose/eocare-pipeline --push .
+	docker buildx build --platform $(PLATFORMS) --push -t $(IMAGE_NAME):latest -t $(IMAGE_NAME):$(VERSION) .
 
-deploy: docker-push
-	bash secrets/deploy-app.sh
-	say "Deployed to Digital Ocean"
+docker-run:
+	docker run --rm -p 8080:8080 $(IMAGE_NAME):latest
 
 depends:
 	./gradlew dependencies
@@ -30,37 +33,8 @@ depends:
 run:
 	./gradlew run
 
-kdocs:
-	./gradlew dokkaGeneratePublicationHtml
-
-clean-docs:
-	rm -rf website/website-validation/site
-	rm -rf website/website-validation/.cache
-
-kotlin-site:
-	./gradlew run
-
 ts-site:
 	cd typescript && npm start
 
-site: clean-docs
-	cd website/website-validation && uv run zensical serve
-
-publish-local:
-	./gradlew publishToMavenLocal
-
-publish-local-snapshot:
-	./gradlew -PoverrideVersion=$(VERSION)-SNAPSHOT publishToMavenLocal
-
-GPG_ENV = \
-	ORG_GRADLE_PROJECT_signingInMemoryKey="$$(gpg --armor --export-secret-keys $$GPG_SIGNING_KEY_ID)" \
-	ORG_GRADLE_PROJECT_signingInMemoryKeyPassword=$$(security find-generic-password -a "gpg-signing" -s "gradle-signing-password" -w)
-
-publish-snapshot:
-	$(GPG_ENV) ./gradlew -PoverrideVersion=$(VERSION)-SNAPSHOT publishToMavenCentral
-
-publish-maven-central:
-	$(GPG_ENV) ./gradlew publishAndReleaseToMavenCentral
-
 upgrade-wrapper:
-	./gradlew wrapper --gradle-version=9.4.1 --distribution-type=bin
+	./gradlew wrapper --gradle-version=9.5.0 --distribution-type=bin
