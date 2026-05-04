@@ -88,7 +88,7 @@ With the `playwright-scenarios` plugin installed and the server running, try the
 
 > `/review-scenario`
 
-**Generate tests from reviewed scenarios.** Reads `src/test/scenarios/*.md` and writes Kotest files under the configured test directory:
+**Generate tests from reviewed scenarios.** Reads `scenarios/*.md` and writes Kotest files under the configured test directory:
 
 > `/scenario-to-tests`
 
@@ -100,7 +100,7 @@ With the `playwright-scenarios` plugin installed and the server running, try the
 
 ```
 scenarios/                         shared scenario markdown (both implementations)
-src/main/kotlin/com/mattbobambrose/
+src/main/kotlin/                   (package com.mattbobambrose; flat layout)
   Application.kt       module wiring
   Monitoring.kt        call-logging install
   routing/             one file per feature area (static, catalog, cart, checkout, auth, shelf, order)
