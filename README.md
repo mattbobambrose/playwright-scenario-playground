@@ -1,16 +1,24 @@
 # playwright-scenario-playground
 
-A "Bookshelf" demo site implemented in **both Kotlin/Ktor and TypeScript/Express**, used as a target for the `/record-scenario`, `/review-scenario`, and `scenario-to-tests` skills in this marketplace.
+A "Bookshelf" demo site — a small, self-contained web app for exercising the [`playwright-scenarios`](https://github.com/mattbobambrose/playwright-scenarios) Claude Code plugin against a live site you control. Login, catalog, search, cart, checkout, shelves with drag-and-drop, and order history — enough surface to demo every authoring path the plugin supports.
 
-Both implementations serve the same pages with the same `data-testid` attributes, routes, validation rules, and demo data — so the same scenario markdown files validate both. This demonstrates that Playwright scenarios are implementation-agnostic.
+## Quick start
 
-## Requirements
+```bash
+docker run --rm -p 8080:8080 mattbobambrose/playwright-scenario-playground
+```
+
+Then open <http://localhost:8080>. State (carts, shelves, orders) lives only in memory and resets on restart, so you can demo destructive flows without cleanup.
+
+The site is implemented in **both Kotlin/Ktor and TypeScript/Express**, serving the same pages with the same `data-testid` attributes, routes, validation rules, and demo data — so the same scenario markdown files validate both. The published Docker image ships the Kotlin build. To run from source (either implementation), see [Running from source](#running-from-source) below.
+
+## Running from source
+
+### Requirements
 
 - **Kotlin:** JDK 21+ (the Kotlin JVM toolchain is pinned to 21 in `build.gradle.kts`)
 - **TypeScript:** Node.js 20+
 - macOS, Linux, or Windows with a Bourne-compatible shell
-
-## Running
 
 ### Kotlin (port 8080)
 
