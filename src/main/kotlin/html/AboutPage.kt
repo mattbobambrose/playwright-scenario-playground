@@ -13,7 +13,7 @@ suspend fun ApplicationCall.renderAbout() {
     article(classes = "prose max-w-3xl") {
       h1(classes = "text-3xl font-bold mb-4") { +"About this demo" }
       p(classes = "mb-4 text-slate-700") {
-        +"Bookshelf is a deliberately small Ktor application used to demonstrate the "
+        +"Bookstore is a deliberately small Ktor application used to demonstrate the "
         +"playwright scenario recording and test-generation skills in this repo. It mixes "
         +"static marketing pages, dynamic HTML DSL views, forms with validation, a session "
         +"cart, hardcoded login, and a drag-and-drop \"My Shelves\" page."

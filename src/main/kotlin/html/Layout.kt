@@ -43,7 +43,7 @@ suspend fun ApplicationCall.respondPage(
     head {
       meta(charset = "utf-8")
       meta(name = "viewport", content = "width=device-width, initial-scale=1")
-      title { +"$pageTitle · Bookshelf Demo" }
+      title { +"$pageTitle · Bookstore Demo" }
       script(src = "https://cdn.tailwindcss.com") {}
       link(rel = "icon", href = "data:,")
     }
@@ -62,7 +62,7 @@ private fun BODY.renderHeader(session: UserSession?, cartCount: Int) {
     div(classes = "max-w-6xl mx-auto px-4 py-4 flex items-center gap-6") {
       a(href = "/", classes = "text-xl font-bold text-indigo-700") {
         attributes["data-testid"] = "brand"
-        +"📚 Bookshelf"
+        +"📚 Bookstore"
       }
       nav(classes = "flex items-center gap-4 text-sm font-medium text-slate-700 flex-1") {
         navLink("/catalog", "Catalog", "nav-catalog")
@@ -113,7 +113,7 @@ private fun FlowContent.navLink(href: String, label: String, testId: String) {
 private fun BODY.renderFooter() {
   footer(classes = "bg-white border-t border-slate-200 mt-12") {
     div(classes = "max-w-6xl mx-auto px-4 py-6 text-sm text-slate-500 flex justify-between") {
-      span { +"© Bookshelf Demo" }
+      span { +"© Bookstore Demo" }
       a(href = "/about", classes = "hover:text-indigo-700") { +"About this demo" }
     }
   }

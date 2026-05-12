@@ -1,6 +1,6 @@
 # playwright-scenario-playground
 
-A "Bookshelf" demo site — a small, self-contained web app for exercising the [`playwright-scenarios`](https://github.com/mattbobambrose/playwright-scenarios) Claude Code plugin against a live site you control. Login, catalog, search, cart, checkout, shelves with drag-and-drop, and order history — enough surface to demo every authoring path the plugin supports.
+A "Bookstore" demo site — a small, self-contained web app for exercising the [`playwright-scenarios`](https://github.com/mattbobambrose/playwright-scenarios) Claude Code plugin against a live site you control. Login, catalog, search, cart, checkout, shelves with drag-and-drop, and order history — enough surface to demo every authoring path the plugin supports.
 
 ## Quick start
 
