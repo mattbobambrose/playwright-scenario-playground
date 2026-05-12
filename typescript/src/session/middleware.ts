@@ -18,7 +18,7 @@ declare module 'express-session' {
 // ---------------------------------------------------------------------------
 
 export const sessionMiddleware = session({
-  secret: 'bookshelf-demo-secret',
+  secret: 'bookstore-demo-secret',
   resave: false,
   saveUninitialized: true,
   cookie: {

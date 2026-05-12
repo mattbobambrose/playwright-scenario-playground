@@ -29,7 +29,7 @@ export function layout(title: string, content: string, opts: LayoutOpts): string
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${esc(title)} · Bookshelf Demo</title>
+<title>${esc(title)} · Bookstore Demo</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="icon" href="data:,">
 </head>
@@ -68,7 +68,7 @@ function renderHeader(username: string | undefined, cartCount: number): string {
 
   return `<header class="bg-white border-b border-slate-200 shadow-sm">
 <div class="max-w-6xl mx-auto px-4 py-4 flex items-center gap-6">
-<a href="/" class="text-xl font-bold text-indigo-700" data-testid="brand">\u{1F4DA} Bookshelf</a>
+<a href="/" class="text-xl font-bold text-indigo-700" data-testid="brand">\u{1F4DA} Bookstore</a>
 <nav class="flex items-center gap-4 text-sm font-medium text-slate-700 flex-1">
 ${navLinks}
 </nav>
@@ -85,7 +85,7 @@ function navLink(href: string, label: string, testId: string): string {
 function renderFooter(): string {
   return `<footer class="bg-white border-t border-slate-200 mt-12">
 <div class="max-w-6xl mx-auto px-4 py-6 text-sm text-slate-500 flex justify-between">
-<span>\u00A9 Bookshelf Demo</span>
+<span>\u00A9 Bookstore Demo</span>
 <a href="/about" class="hover:text-indigo-700">About this demo</a>
 </div>
 </footer>`;

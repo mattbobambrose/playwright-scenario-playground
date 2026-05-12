@@ -1,6 +1,6 @@
 # playwright-scenarios
 
-> A small Ktor + Kotlin HTML DSL "Bookshelf" demo site used as a target for Playwright scenario recording, review, and test generation skills.
+> A small Ktor + Kotlin HTML DSL "Bookstore" demo site used as a target for Playwright scenario recording, review, and test generation skills.
 
 The app mixes static marketing pages, dynamic HTML-rendered views, a session-backed cart, hardcoded login, form validation with field-level errors, and a native HTML5 drag-and-drop "My Shelves" page. All state (carts, shelves, orders) lives in memory only and resets on JVM restart.
 
@@ -10,7 +10,7 @@ The app mixes static marketing pages, dynamic HTML-rendered views, a session-bac
 
 ---
 
-A Ktor-based "Bookshelf" demo site used as a target for the `/record-scenario`, `/review-scenario`, and `scenario-to-tests` skills in this marketplace.
+A Ktor-based "Bookstore" demo site used as a target for the `/record-scenario`, `/review-scenario`, and `scenario-to-tests` skills in this marketplace.
 
 **Requirements:** JDK 21+. Run with `./gradlew run` (server listens on `http://localhost:8080`). State lives only in memory and resets on restart. Test with `./gradlew test`.
 
