@@ -151,7 +151,7 @@ The scenario markdown files in `scenarios/` work for both. To switch which imple
 
 ```yaml
 # Kotlin
-test_dir: src/test/kotlin/com/mattbobambrose/examples/scenarios
+test_dir: src/test/kotlin/com/mattbobambrose/examples
 test_language: kotlin
 test_framework: kotest-stringspec
 
